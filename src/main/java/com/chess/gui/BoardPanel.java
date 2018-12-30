@@ -6,6 +6,8 @@ import main.java.com.chess.engine.Move;
 import main.java.com.chess.engine.Square;
 import main.java.com.chess.engine.pieces.Piece;
 import main.java.com.chess.engine.pieces.Queen;
+import main.java.com.chess.ai.Strategy;
+
 
 import javax.swing.*;
 import java.awt.*;
@@ -51,6 +53,9 @@ public class BoardPanel extends JPanel {
 		this.board = board;
 		setBorder(BorderFactory.createEmptyBorder(40, 43, -20, -50));
 		validate();
+
+		if (game.hasAI() && !game.blackAI())
+			onMoveWithAI(null);
 	}
 
 	/**
@@ -122,24 +127,50 @@ public class BoardPanel extends JPanel {
 
 			Move moveFound = validMoveTo(onPos);
 			if (moveFound != null) {
-				savePieceInfoBeforeMove(moveFound);
-				board.takeMove(moveFound);
-				if (board.hasPendingPromotion())
-					board.promotePawn(Queen.LABEL); // Just for simplicity, always promote to queen
-				game.notifyMoved();
-
-				validMoves = new ArrayList<>();
-				updatePiecesForMove(moveFound);
+				if (game.hasAI())
+					onMoveWithAI(moveFound);
+				else
+					onMoveWithoutAI(moveFound);
 			} else {
 				Piece piece = board.getPiece(onPos);
 				if (piece != null && piece.isBlack()==game.isBlackToMove()) {
 					validMoves = board.possibleNextMoves(onPos);
-					setHint(onPos);
+					if (onPos != lastPosClicked) {
+						setHint(onPos);
+					} else {
+						onPos = null;
+					}
 				} else {
 					validMoves = new ArrayList<>();
 				}
+				lastPosClicked = onPos;
 			}
-			lastPosClicked = onPos;
+		}
+	}
+
+	private void onMoveWithoutAI(Move moveFound) {
+		savePieceInfoBeforeMove(moveFound);
+		board.takeMove(moveFound);
+		if (board.hasPendingPromotion())
+			board.promotePawn(Queen.LABEL); // Just for simplicity, always promote to queen
+		game.notifyMoved();
+
+		validMoves = new ArrayList<>();
+		updatePiecesForMove(moveFound);
+	}
+
+	private void onMoveWithAI(Move moveFound) {
+		if (moveFound != null)
+			onMoveWithoutAI(moveFound);
+		Strategy strategy = Preferences.AI;
+		Move aiMove = strategy.nextMove(board,game.isBlackToMove());
+		if (aiMove != null) {
+			try {
+				Thread.sleep(50);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			onMoveWithoutAI(aiMove);
 		}
 	}
 
@@ -158,11 +189,14 @@ public class BoardPanel extends JPanel {
 	 * @param onPos the start position
 	 */
 	private void setHint(Square onPos) {
-		getTile(onPos).setBackground(Preferences.SELECTION_COLOR);
+		getTile(onPos).setBackground(Preferences.SELECTION_COLOR_LIGHT);
 		for (Move move : validMoves) {
 			TilePanel tile = getTile(move.getEndPos());
+
 			tile.setBorder(BorderFactory.createStrokeBorder(
-				new BasicStroke(Preferences.BORDER_WIDTH), Preferences.SELECTION_COLOR));
+				new BasicStroke(Preferences.BORDER_WIDTH),
+				Preferences.SELECTION_COLOR_LIGHT
+			));
 		}
 	}
 

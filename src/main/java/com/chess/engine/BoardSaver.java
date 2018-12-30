@@ -17,6 +17,7 @@ public class BoardSaver {
 	private Move lastMove;
 	private Move move;
 	private PawnPromotionHandler pawnPromotionHandler;
+	private int moveCount;
 
 	/**
 	 *
@@ -45,6 +46,7 @@ public class BoardSaver {
 			}
 		}
 		lastMove = board.getLastMove();
+		moveCount = board.getMoveCount();
 		pawnPromotionHandler = new PawnPromotionHandler(board);
 	}
 
@@ -62,6 +64,7 @@ public class BoardSaver {
 				piece.restorePieceInfo(savedPiecesInfo.get(pos));
 		}
 		board.setLastMove(lastMove);
+		board.setMoveCount(moveCount);
 		board.setPromotionChecker(pawnPromotionHandler);
 	}
 }

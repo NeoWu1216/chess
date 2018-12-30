@@ -37,9 +37,11 @@ public class TilePanel extends JPanel {
 		addMouseListener(new MoveListener());
 	}
 
-
+	boolean isLight() {
+		return (square.rowIx()+square.colIx())%2==0;
+	}
 	void assignTileColor() {
-		setBackground((square.rowIx()+square.colIx())%2==0 ? Preferences.LIGHT_COLOR : Preferences.DARK_COLOR);
+		setBackground(isLight() ? Preferences.LIGHT_COLOR : Preferences.DARK_COLOR);
 	}
 	/**
 	 * set the correct icon for current piece on board
@@ -88,7 +90,5 @@ public class TilePanel extends JPanel {
 		}
 	}
 
-	// highlight self
-	// highlight border
 
 }

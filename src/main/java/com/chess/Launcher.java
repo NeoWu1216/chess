@@ -1,6 +1,5 @@
 package main.java.com.chess;
 
-import main.java.com.chess.engine.Board;
 import main.java.com.chess.gui.Game;
 
 /**

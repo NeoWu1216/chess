@@ -21,6 +21,7 @@ public class Board {
 	private Square[] kingPositions = new Square[2];  //White, Black
 	private Move lastMove;
 	private PawnPromotionHandler promotionChecker = new PawnPromotionHandler(this);
+	private int moveCount;
 
 	/**
 	 * Construct the normal board (initial chess board)
@@ -133,12 +134,30 @@ public class Board {
 		return lastMove;
 	}
 
+
 	/**
 	 *
 	 * @param lastMove the last move on board
 	 */
 	public void setLastMove(Move lastMove) {
 		this.lastMove = lastMove;
+	}
+
+
+	/**
+	 *
+	 * @return count of moves made on board
+	 */
+	public int getMoveCount() {
+		return moveCount;
+	}
+
+	/**
+	 *
+	 * @param moveCount count of moves made on board
+	 */
+	public void setMoveCount(int moveCount) {
+		this.moveCount = moveCount;
 	}
 
 	/**
@@ -244,6 +263,7 @@ public class Board {
 	 * @param move move to be taken
 	 */
 	public void takeMove(Move move) {
+		moveCount ++;
 		promotionChecker.checkAndUpdate(move);
 		touchPieces(move);
 		lastMove = move;

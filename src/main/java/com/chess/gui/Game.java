@@ -5,6 +5,9 @@ import main.java.com.chess.engine.BoardType;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 
 /**
@@ -22,21 +25,23 @@ public class Game {
 	private JButton resignButton;
 	private Commenter commenter;
 	private boolean isBlackToMove;
+	private boolean hasAI;
+	private boolean blackAI;
 	private ScoreTracker scoreTracker;
 	private JLabel whiteScoreDisplay;
 	private JLabel blackScoreDisplay;
 	private JMenuBar menuBar;
 	private BoardType mode;  // which mode board in (normal or customized)
-
 	/**
 	 * constructor for game
 	 * create the main gameFrame, Board Panel for display and buttons
 	 */
 	public Game() {
 		this.mode = BoardType.NORMAL;
+		this.hasAI = true;
+		this.blackAI = true;
 		startGame(new ScoreTracker(), mode);
 	}
-
 
 	private void startGame(ScoreTracker scoreTracker, BoardType mode) {
 		this.scoreTracker = scoreTracker;
@@ -45,11 +50,15 @@ public class Game {
 		this.board = new Board(mode);
 		this.menuBar = new JMenuBar();
 		initializeGameFrame();
-		initializeBoardPanel();
 		initializeBottomPanel();
 		initializeTopPanel();
+		initializeBoardPanel();
+
 		initializeOption();
 		initializeMode();
+		initializePlayer();
+
+
 
 		setBackground();
 		this.gameFrame.setJMenuBar(menuBar);
@@ -63,6 +72,25 @@ public class Game {
 		this.gameFrame.setSize(Preferences.GAME_DIMENSION);
 		this.gameFrame.setLayout(new BorderLayout());
 		this.gameFrame.setResizable(false);
+		addKeyBinding(gameFrame);
+	}
+
+
+	private void addKeyBinding(JFrame frame) {
+		frame.setFocusable(true);
+		frame.addKeyListener(new  KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				switch (e.getKeyCode()) {
+					case Preferences.UNDO_KEY:
+						undoButton.doClick();
+						break;
+					case Preferences.RESTART_KEY:
+						restartGame();
+						break;
+				}
+			}
+		});
 	}
 
 	private void initializeBoardPanel() {
@@ -82,6 +110,7 @@ public class Game {
 		restart.setFont(Preferences.MENU_FONT);
 		menu.add(restart);
 	}
+
 
 
 	private void initializeMode() {
@@ -104,6 +133,34 @@ public class Game {
 		});
 		item.setFont(Preferences.MENU_FONT);
 		if (mode == type) {
+			item.setState(true);
+		}
+		menu.add(item);
+	}
+
+	private void initializePlayer() {
+		final JMenu menu = new JMenu(Preferences.PLAYER_TEXT);
+		menu.setFont(Preferences.MENU_FONT);
+		menuBar.add(menu);
+		initializePlayerItem(menu, true, true, Preferences.PLAYER_BLACK_AI_TEXT);
+		initializePlayerItem(menu, false, true, Preferences.PLAYER_WHITE_AT_TEXT);
+		initializePlayerItem(menu, false, false, Preferences.PLAYER_FRIEND_TEXT);
+	}
+
+	private void initializePlayerItem(JMenu menu, boolean blackAI, boolean hasAI, String text) {
+		final JCheckBoxMenuItem item = new JCheckBoxMenuItem(text);
+		item.addActionListener(e -> {
+			if (blackAI != this.blackAI || hasAI != this.hasAI) {
+				this.blackAI = blackAI;
+				this.hasAI = hasAI;
+				scoreTracker.reset();
+				restartGame();
+			} else {
+				item.setState(true);
+			}
+		});
+		item.setFont(Preferences.MENU_FONT);
+		if (blackAI == this.blackAI && hasAI == this.hasAI) {
 			item.setState(true);
 		}
 		menu.add(item);
@@ -160,8 +217,13 @@ public class Game {
 		return isBlackToMove;
 	}
 
+	public boolean hasAI() {
+		return hasAI;
+	}
 
-
+	public boolean blackAI() {
+		return blackAI;
+	}
 
 	private void updateScoreDisplay() {
 		whiteScoreDisplay.setText("Score White ----- "+(scoreTracker.getScore(false)));
@@ -224,9 +286,15 @@ public class Game {
 	private JButton createUndoButton(String text) {
 		JButton button = createButton(text);
 		button.addActionListener(e -> {
-			boolean restored = boardPanel.restoreSavedPieces();
-			if (restored)
-				notifyMoved();
+			if ((board.getMoveCount()==1 && !blackAI && hasAI)) {
+				return;
+			}
+			for (int i = -1; i < (hasAI ? 1 : 0); i ++) {
+				boolean restored = boardPanel.restoreSavedPieces();
+				if (restored) {
+					notifyMoved();
+				}
+			}
 		});
 		return button;
 	}

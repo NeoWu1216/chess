@@ -17,6 +17,8 @@ public abstract class Piece {
 	private boolean isBlack;
 	private Board board;
 	private boolean hasMoved;
+	public abstract String label();
+
 
 	/**
 	 *
@@ -77,7 +79,6 @@ public abstract class Piece {
 		return board;
 	}
 
-	public abstract String label();
 	public String pieceName() {
 		return (isBlack ? "Black " : "White ")+ label();
 	}

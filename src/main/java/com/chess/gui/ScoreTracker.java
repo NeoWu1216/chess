@@ -10,6 +10,15 @@ public class ScoreTracker {
 	private Integer scores[] = new Integer[] {0, 0};
 	private Integer halfScores[] = new Integer[] {0,0};
 
+	public ScoreTracker() {
+		reset();
+	}
+
+	public void reset() {
+		scores = new Integer[] {0, 0};
+		halfScores = new Integer[] {0, 0};
+	}
+
 	/**
 	 *
 	 * @param isBlack black's score or white
@@ -50,5 +59,9 @@ public class ScoreTracker {
 
 	public void notifyRestart() {
 		// Shouldn't matter
+	}
+
+	public void notifyPlayerChange() {
+		reset();
 	}
 }
